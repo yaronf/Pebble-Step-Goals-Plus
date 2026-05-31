@@ -1,87 +1,129 @@
-# Implementation Plan: Pebble Step Goals Plus Upgrade for Pebble Time 2 (Emery)
+# Implementation Plan: Restoring Dashboard and Adding Settings Menu Flow
 
-This plan details the steps required to upgrade the Pebble Step Goals app to support the Pebble Time 2 (`emery` platform), resolve compilation errors under the current Pebble SDK, improve the layout algorithm to automatically scale across platforms, and produce high-resolution assets.
+This plan details the steps required to restore the full-screen progress dashboard (where the screen fills with purple as steps increase) and implement a navigation menu accessible via the **Select** button containing:
+- Main Daily Goal
+- Bonus Daily Goal
+- Streak Count
+- Encouragements
+- Customizations
 
 ## User Review Required
 
 > [!IMPORTANT]
-> The Pebble Time 2 (`emery` platform) features a higher resolution (200x228) and a 64-color screen.
-> To support this screen, we must:
-> 1. Bump the app version to `1.0` (next major version).
-> 2. Fix a compiler error in `worker_src/StepGoal_worker.c` caused by missing enum cases in `health_updates()`.
-> 3. Add a high-resolution, color-quantized asset for the trophy (`trophy~emery.png`) using the Pebble 64-color palette.
-> 4. Modify the layout math in `src/window_goal.c` to prevent image/text overlap when using larger assets.
-
-## Future Roadmap
-
-> [!TIP]
-> **Trophy Graphic Upgrade:** For future versions, consider replacing the flat black silhouette trophy with a colorful 64-color pixel-art style golden trophy to make better use of Pebble Time 2's color capabilities.
+> - We will create a new main screen (**Progress Screen**) showing the step progress. The background will fill with the customized color (default: purple) from bottom-to-top based on current step progress towards the goal.
+> - Clicking the **Select** button on the progress screen will push the **Main Settings Menu** showing the 5 required options.
+> - The goal selection list (previously filling the screen on startup) will now be accessed via the "Main Daily Goal" sub-menu.
+> - We will add streak tracking, bonus goals, milestone encouragements (vibration at 50%/75%), and customization (theme color selection) persisting across launches.
 
 ---
-
 
 ## Proposed Changes
 
-### Configuration & Compilation Fixes
+### Core System Configuration
 
-#### [MODIFY] [appinfo.json](file:///Users/dauletle/Development/pebble-step-goal-plus_pebble/appinfo.json)
-- Add `"emery"` to the `"targetPlatforms"` array.
-- Bump `"versionLabel"` to `"1.0"`.
+#### [MODIFY] [app.h](file:///Users/dauletle/Development/pebble-step-goal-plus_pebble/src/app.h)
+- Define new persistent storage keys:
+  - `GOAL` (0)
+  - `BONUS_GOAL` (1)
+  - `STREAK_COUNT` (2)
+  - `BEST_STREAK` (3)
+  - `LAST_MET_DATE` (4)
+  - `ENCOURAGE_50` (5)
+  - `ENCOURAGE_75` (6)
+  - `CUSTOM_COLOR` (7)
+  - `LAST_50_VIBRATED_DAY` (8)
+  - `LAST_75_VIBRATED_DAY` (9)
+- Declare window load functions and helper declarations for the new windows.
+- Add local epoch day calculation helper signature.
 
-#### [MODIFY] [StepGoal_worker.c](file:///Users/dauletle/Development/pebble-step-goal-plus_pebble/worker_src/StepGoal_worker.c)
-- Add missing enum cases (`HealthEventMetricAlert`, `HealthEventHeartRateUpdate`) or a `default` case to the `health_updates()` event handler switch to resolve the `-Werror=switch` compilation error.
+#### [MODIFY] [app.c](file:///Users/dauletle/Development/pebble-step-goal-plus_pebble/src/app.c)
+- Change standard startup behavior: push the new `window_progress` on normal launch instead of the settings menu directly.
+- Implement timezone-aware `get_local_epoch_day()` to manage daily resets and streak calculations accurately.
 
 ---
 
-### UI & Resource Upgrades
+### Dashboard & Menu UI Components
 
-#### [NEW] [trophy~emery.png](file:///Users/dauletle/Development/pebble-step-goal-plus_pebble/resources/images/trophy~emery.png)
-- Scale/upsample the existing flat black silhouette trophy to `120x120` pixels.
-- Ensure transparency is preserved so it looks crisp and unpixelated on Pebble Time 2.
+#### [NEW] [window_progress.c](file:///Users/dauletle/Development/pebble-step-goal-plus_pebble/src/window_progress.c)
+- Implement full-screen dashboard showing the progress of steps today.
+- Draw background filling dynamically with the chosen color (purple, blue, green, or red) from bottom to top.
+- Draw a clear card in the center displaying steps and target goal.
+- Subscribe to Pebble Health events so step count and filling animations update live as the user walks.
+- Wire `Select` button click to push `window_main_menu`.
 
+#### [NEW] [window_main_menu.c](file:///Users/dauletle/Development/pebble-step-goal-plus_pebble/src/window_main_menu.c)
+- Create a MenuLayer listing:
+  1. **Main Daily Goal** (shows current goal, e.g. "4,000 steps")
+  2. **Bonus Daily Goal** (shows current bonus, e.g. "+2,000 steps")
+  3. **Streak Count** (shows current streak, e.g. "5 days")
+  4. **Encouragements** (shows vibrate alerts status)
+  5. **Customizations** (shows selected theme color)
+- Route selection clicks to launch the respective sub-menus/screens.
 
-#### [MODIFY] [window_goal.c](file:///Users/dauletle/Development/pebble-step-goal-plus_pebble/src/window_goal.c)
-- Replace static coordinate offset logic with dynamic layout positioning:
-  - Center the combination of the trophy bitmap and the text layer as a single group.
-  - Dynamically read `gbitmap_get_bounds(s_goal_icon)` so it automatically works for `120x120` (emery) and `85x85` (basalt/chalk) without overlaps.
+#### [MODIFY] [window_menu.c](file:///Users/dauletle/Development/pebble-step-goal-plus_pebble/src/window_menu.c)
+- Refactor the file to act as the "Main Daily Goal" sub-selection screen rather than the home screen.
+- Pop this window back to the main menu once a goal is selected.
+
+#### [NEW] [window_bonus_select.c](file:///Users/dauletle/Development/pebble-step-goal-plus_pebble/src/window_bonus_select.c)
+- Create a sub-menu to select a bonus goal (None, +2k, +4k, +6k, +8k, +10k steps).
+- Save selection to `BONUS_GOAL` persistent key.
+
+#### [NEW] [window_streak.c](file:///Users/dauletle/Development/pebble-step-goal-plus_pebble/src/window_streak.c)
+- Create a simple dashboard screen displaying:
+  - Current streak in days.
+  - Best historical streak in days.
+  - Motivation message.
+
+#### [NEW] [window_encourage.c](file:///Users/dauletle/Development/pebble-step-goal-plus_pebble/src/window_encourage.c)
+- Create a menu containing toggle options:
+  - "Vibrate at 50%"
+  - "Vibrate at 75%"
+- Update toggles live and persist preferences.
+
+#### [NEW] [window_customize.c](file:///Users/dauletle/Development/pebble-step-goal-plus_pebble/src/window_customize.c)
+- Create a menu to select progress filling themes:
+  - **Purple** (Lavender Indigo)
+  - **Blue** (Cobalt Blue)
+  - **Green** (Tiffany Blue)
+  - **Red** (Folly / Red)
+- Save to `CUSTOM_COLOR` persistent key.
+
+---
+
+### Background Worker Upgrades
+
+#### [MODIFY] [StepGoal_worker.c](file:///Users/dauletle/Development/pebble-step-goal-plus_pebble/worker_src/StepGoal_worker.c)
+- Integrate streak calculation:
+  - When steps >= goal, check `last_met_date`.
+  - If `last_met_date` is yesterday, increment `STREAK_COUNT` and update `BEST_STREAK`.
+  - If `last_met_date` is before yesterday, reset `STREAK_COUNT` to 1.
+  - Save `last_met_date` as today.
+- Integrate mid-day milestones encouragements:
+  - If steps reach 50% or 75% of the goal, and `ENCOURAGE_50`/`ENCOURAGE_75` is enabled, and the milestone wasn't already triggered today, vibrate the watch via the background worker.
 
 ---
 
 ## Task List
 
-### Phase 1: Foundation (Fixes & Config)
-- [ ] **Task 1: Resolve Worker Switch Compiler Error**
-  - **Description:** Add handling for all `HealthEventType` enums in `worker_src/StepGoal_worker.c` to fix the build warning-as-error under SDK 4.9.
-  - **Acceptance criteria:** `pebble build` compiles successfully for existing platforms (`basalt`, `chalk`).
-  - **Verification:** Run `pebble build` and check for compile success.
-- [ ] **Task 2: Configure targetPlatforms & Version**
-  - **Description:** Add `"emery"` platform to `"targetPlatforms"` in `appinfo.json` and bump version label to `"1.0"`.
-  - **Acceptance criteria:** `appinfo.json` has `emery` and version `1.0`.
-  - **Verification:** Run `pebble build` and check that the build system attempts to compile for all three platforms.
+### Phase 1: Storage & Main Flow Setup
+- [ ] **Task 1: Core Definitions and App Routing**
+  - Update `src/app.h` and `src/app.c` to declare persistent storage keys, define `get_local_epoch_day()`, and route standard launch to progress window.
+- [ ] **Task 2: Implement Progress Dashboard**
+  - Implement `src/window_progress.c` with dynamic bottom-up background fill and live health subscription updates.
 
-### Checkpoint: Foundation
-- [ ] Compilation succeeds for `basalt`, `chalk`, and `emery`.
+### Phase 2: Navigation & Settings Menus
+- [ ] **Task 3: Implement Settings Navigation Menu**
+  - Implement `src/window_main_menu.c` presenting the five list items.
+- [ ] **Task 4: Refactor Main Goal Selection**
+  - Refactor `src/window_menu.c` to be pushed/popped as a sub-menu.
+- [ ] **Task 5: Implement Bonus, Streak, Customization & Encouragement Screens**
+  - Create the sub-menu C files for configuring bonus goals, streak metrics, color customization, and vibe settings.
 
-### Phase 2: UI & Resource Enhancements
-- [ ] **Task 3: Create High-Resolution Emery Asset**
-  - **Description:** Scale/upsample the existing flat black silhouette trophy (`resources/images/trophy.png`) to a clean `120x120` pixels asset and place it at `resources/images/trophy~emery.png`.
-  - **Acceptance criteria:** Asset exists at the correct path, has resolution `120x120` px, and maintains flat black color with transparency.
-  - **Verification:** Run a Python script to verify size is `120x120` px and transparency is maintained.
-
-- [ ] **Task 4: Implement Dynamic Layout Math**
-  - **Description:** Update `src/window_goal.c` to dynamically position elements to avoid text-image overlap on all screen sizes.
-  - **Acceptance criteria:** Window centers the trophy and text dynamically as a vertical group.
-  - **Verification:** Review math in code; verify there is no hardcoded overlap on any platform.
-
-### Checkpoint: Core Features
-- [ ] Compilation succeeds for all platforms.
-- [ ] Asset resource pack is built correctly for `emery`.
-
-### Phase 3: Polish & Emulation Check
-- [ ] **Task 5: Verify build & run emulator**
-  - **Description:** Run full compile and boot the app on the Emery emulator to visually verify layout.
-  - **Acceptance criteria:** Emulator runs Emery and displays the step goals screen/goal met screen correctly.
-  - **Verification:** Run `pebble install --emulator emery` and check the visual layout.
+### Phase 3: Streak & Vibe Worker Upgrades
+- [ ] **Task 6: Upgrade StepGoal_worker.c**
+  - Add milestone checks and streak date calculations inside the background worker.
+- [ ] **Task 7: Visual and Integration Validation**
+  - Compile the code, start the emulator, take screenshots, and verify navigation transitions.
 
 ---
 
@@ -89,6 +131,5 @@ This plan details the steps required to upgrade the Pebble Step Goals app to sup
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| Emery compiler fails on deprecation issues | High | Investigate and modify deprecated API calls in C files. |
-| PNG quantization loses too much quality | Medium | Tweak the Python quantization script or try different source designs to ensure a clean appearance at 64 colors. |
-| Emulator does not launch on macOS host | Low | Rely on C layout reviews and successful compiler output for the `emery` platform. |
+| Timezone conversion bugs on daily resetting | Medium | Implement local time Gregorian-to-Julian/epoch calculation instead of UTC division, matching local Pebble watch settings. |
+| Memory limits (RAM) on older Pebble models | Medium | Keep layouts simple and recycle windows appropriately by popping them off the stack instead of piling them up. |
