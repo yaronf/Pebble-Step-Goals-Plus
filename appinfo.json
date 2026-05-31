@@ -3,9 +3,9 @@
   "shortName": "Step Goals",
   "longName": "Step Goals",
   "companyName": "Travis La Marr",
-  "versionLabel": "0.2",
+  "versionLabel": "1.0",
   "sdkVersion": "3",
-  "targetPlatforms": ["basalt", "chalk"],
+  "targetPlatforms": ["basalt", "chalk", "emery"],
   "capabilities": ["health"],
   "watchapp": {
     "watchface": false

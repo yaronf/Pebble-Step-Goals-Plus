@@ -1,7 +1,10 @@
-
-# Ignore build generated files
 build
-
-# Ignore waf lock file
-.lock-waf*
-.clang_complete
+.lock-waf_linux2_build
+node_modules/
+dist
+archive
+.lock-waf_darwin_build
+tools/aseprite-mcp/
+.gemini/
+.DS_Store
+*.DS_Store

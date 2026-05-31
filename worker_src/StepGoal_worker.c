@@ -36,6 +36,8 @@ static void health_updates(HealthEventType eventType, void *context) {
 
     case HealthEventSleepUpdate:
     break;
+    default:
+    break;
   }
 }
 
