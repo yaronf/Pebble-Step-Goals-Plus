@@ -8,10 +8,9 @@ static TextLayer *s_streak_text;
 static BitmapLayer *s_streak_icon;
 static GBitmap *s_streak_icon_bitmap;
 static GRect s_card_rect;
-static GRect s_window_bounds;
 static char s_steps_buffer[16];
 static char s_target_buffer[32];
-static char s_streak_buffer[16];
+static char s_streak_buffer[24];
 
 static GRect get_card_rect(GRect bounds) {
   int card_w = (bounds.size.w * 80) / 100;
@@ -58,7 +57,7 @@ static void layout_streak_row(int streak_y) {
     text_layer_set_text(s_streak_text, s_streak_buffer);
     text_layer_set_text_alignment(s_streak_text, GTextAlignmentCenter);
     layer_set_frame(text_layer_get_layer(s_streak_text),
-      GRect(0, streak_y, s_window_bounds.size.w, 36));
+      GRect(s_card_rect.origin.x, streak_y, s_card_rect.size.w, 32));
     layer_set_hidden(bitmap_layer_get_layer(s_streak_icon), true);
     layer_set_hidden(text_layer_get_layer(s_streak_text), false);
   }
@@ -160,7 +159,6 @@ static void progress_window_load(Window *window) {
   layer_add_child(window_layer, s_progress_layer);
 
   s_card_rect = get_card_rect(bounds);
-  s_window_bounds = bounds;
 
   // Steps count text layer
   s_steps_text = text_layer_create(GRect(s_card_rect.origin.x, s_card_rect.origin.y + 10, s_card_rect.size.w, 32));
