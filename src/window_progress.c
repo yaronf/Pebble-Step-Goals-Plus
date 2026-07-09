@@ -30,11 +30,11 @@ static void refresh_progress_screen() {
     if (streak > 0) {
       snprintf(s_streak_buffer, sizeof(s_streak_buffer), "\xF0\x9F\x94\xA5 %d day%s streak",
         streak, streak == 1 ? "" : "s");
-      text_layer_set_text(s_streak_text, s_streak_buffer);
-      layer_set_hidden(text_layer_get_layer(s_streak_text), false);
     } else {
-      layer_set_hidden(text_layer_get_layer(s_streak_text), true);
+      snprintf(s_streak_buffer, sizeof(s_streak_buffer), "No active streak");
     }
+    text_layer_set_text(s_streak_text, s_streak_buffer);
+    layer_set_hidden(text_layer_get_layer(s_streak_text), false);
   } else {
     layer_set_hidden(text_layer_get_layer(s_streak_text), true);
   }
