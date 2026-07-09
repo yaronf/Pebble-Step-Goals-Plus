@@ -4,8 +4,10 @@ static Window *s_window;
 static Layer *s_progress_layer;
 static TextLayer *s_steps_text;
 static TextLayer *s_target_text;
+static TextLayer *s_streak_text;
 static char s_steps_buffer[16];
 static char s_target_buffer[32];
+static char s_streak_buffer[24];
 
 static void refresh_progress_screen() {
   int steps = get_step_count();
@@ -22,6 +24,16 @@ static void refresh_progress_screen() {
     snprintf(s_target_buffer, sizeof(s_target_buffer), "of %d steps", main_goal);
   }
   text_layer_set_text(s_target_text, s_target_buffer);
+
+  if (show_streak_in_app()) {
+    int streak = get_streak_count();
+    snprintf(s_streak_buffer, sizeof(s_streak_buffer), "%d day%s streak",
+      streak, streak == 1 ? "" : "s");
+    text_layer_set_text(s_streak_text, s_streak_buffer);
+    layer_set_hidden(text_layer_get_layer(s_streak_text), false);
+  } else {
+    layer_set_hidden(text_layer_get_layer(s_streak_text), true);
+  }
 
   // Check milestones and vibrate
   int today_epoch = get_local_epoch_day();
@@ -124,9 +136,20 @@ static void progress_window_load(Window *window) {
   text_layer_set_font(s_target_text, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
   layer_add_child(window_layer, text_layer_get_layer(s_target_text));
 
+  s_streak_text = text_layer_create(GRect(0, bounds.size.h - 22, bounds.size.w, 20));
+  text_layer_set_background_color(s_streak_text, GColorClear);
+  text_layer_set_text_color(s_streak_text, GColorDarkGray);
+  text_layer_set_text_alignment(s_streak_text, GTextAlignmentCenter);
+  text_layer_set_font(s_streak_text, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD));
+  layer_add_child(window_layer, text_layer_get_layer(s_streak_text));
+
   // Enable live health update subscription
   health_service_events_subscribe(health_handler, NULL);
 
+  refresh_progress_screen();
+}
+
+static void progress_window_appear(Window *window) {
   refresh_progress_screen();
 }
 
@@ -134,6 +157,7 @@ static void progress_window_unload(Window *window) {
   health_service_events_unsubscribe();
   text_layer_destroy(s_steps_text);
   text_layer_destroy(s_target_text);
+  text_layer_destroy(s_streak_text);
   layer_destroy(s_progress_layer);
   s_window = NULL;
 }
@@ -145,6 +169,7 @@ void show_progress_window(void) {
     window_set_window_handlers(s_window, (WindowHandlers) {
       .load = progress_window_load,
       .unload = progress_window_unload,
+      .appear = progress_window_appear,
     });
   }
   window_stack_push(s_window, true);

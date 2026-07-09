@@ -70,6 +70,17 @@ GColor get_custom_theme_color() {
   }
 }
 
+int get_streak_count() {
+  if (persist_exists(STREAK_COUNT)) {
+    return persist_read_int(STREAK_COUNT);
+  }
+  return 0;
+}
+
+bool show_streak_in_app() {
+  return persist_exists(SHOW_STREAK_IN_APP) ? persist_read_bool(SHOW_STREAK_IN_APP) : false;
+}
+
 int get_local_epoch_day() {
   time_t now = time(NULL);
   struct tm *t = localtime(&now);
