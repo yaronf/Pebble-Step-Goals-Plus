@@ -7,12 +7,15 @@ static TextLayer *s_current_value;
 static TextLayer *s_best_title;
 static TextLayer *s_best_value;
 static TextLayer *s_moto_text;
+#ifdef PBL_PLATFORM_EMERY
 static TextLayer *s_toggle_text;
 static Layer *s_divider_layer;
+#endif
 
 static char s_current_buffer[16];
 static char s_best_buffer[16];
 
+#ifdef PBL_PLATFORM_EMERY
 static void divider_layer_update_proc(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_bounds(layer);
   int line_y = bounds.size.h / 2;
@@ -32,6 +35,7 @@ static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
 static void click_config_provider(void *context) {
   window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
 }
+#endif
 
 static void window_load(Window *window) {
   Layer *window_layer = window_get_root_layer(window);
@@ -92,7 +96,12 @@ static void window_load(Window *window) {
   layer_add_child(window_layer, text_layer_get_layer(s_best_value));
 
   // Motto
-  s_moto_text = text_layer_create(GRect(0, bounds.size.h - 56, bounds.size.w, 25));
+#ifdef PBL_PLATFORM_EMERY
+  int motto_y = bounds.size.h - 68;
+#else
+  int motto_y = bounds.size.h - 30;
+#endif
+  s_moto_text = text_layer_create(GRect(0, motto_y, bounds.size.w, 25));
   text_layer_set_background_color(s_moto_text, GColorClear);
   text_layer_set_text_color(s_moto_text, GColorDarkGray);
   text_layer_set_text_alignment(s_moto_text, GTextAlignmentCenter);
@@ -104,21 +113,23 @@ static void window_load(Window *window) {
   }
   layer_add_child(window_layer, text_layer_get_layer(s_moto_text));
 
+#ifdef PBL_PLATFORM_EMERY
   // Divider between motto and toggle
   int divider_x = (bounds.size.w * 20) / 100;
   int divider_w = (bounds.size.w * 60) / 100;
-  s_divider_layer = layer_create(GRect(divider_x, bounds.size.h - 30, divider_w, 4));
+  s_divider_layer = layer_create(GRect(divider_x, bounds.size.h - 38, divider_w, 4));
   layer_set_update_proc(s_divider_layer, divider_layer_update_proc);
   layer_add_child(window_layer, s_divider_layer);
 
   // Show-in-app toggle (press SELECT)
-  s_toggle_text = text_layer_create(GRect(0, bounds.size.h - 26, bounds.size.w, 20));
+  s_toggle_text = text_layer_create(GRect(0, bounds.size.h - 34, bounds.size.w, 30));
   text_layer_set_background_color(s_toggle_text, GColorClear);
   text_layer_set_text_color(s_toggle_text, GColorBlack);
   text_layer_set_text_alignment(s_toggle_text, GTextAlignmentCenter);
-  text_layer_set_font(s_toggle_text, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+  text_layer_set_font(s_toggle_text, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
   layer_add_child(window_layer, text_layer_get_layer(s_toggle_text));
   refresh_toggle_text();
+#endif
 }
 
 static void window_unload(Window *window) {
@@ -128,15 +139,19 @@ static void window_unload(Window *window) {
   text_layer_destroy(s_best_title);
   text_layer_destroy(s_best_value);
   text_layer_destroy(s_moto_text);
+#ifdef PBL_PLATFORM_EMERY
   layer_destroy(s_divider_layer);
   text_layer_destroy(s_toggle_text);
+#endif
   s_window = NULL;
 }
 
 void show_streak_window(void) {
   if (!s_window) {
     s_window = window_create();
+#ifdef PBL_PLATFORM_EMERY
     window_set_click_config_provider(s_window, click_config_provider);
+#endif
     window_set_window_handlers(s_window, (WindowHandlers) {
       .load = window_load,
       .unload = window_unload,
