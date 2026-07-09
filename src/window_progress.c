@@ -140,11 +140,11 @@ static void progress_window_load(Window *window) {
   text_layer_set_font(s_target_text, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
   layer_add_child(window_layer, text_layer_get_layer(s_target_text));
 
-  s_streak_text = text_layer_create(GRect(card_rect.origin.x, card_rect.origin.y + card_rect.size.h - 28, card_rect.size.w, 28));
+  s_streak_text = text_layer_create(GRect(card_rect.origin.x, card_rect.origin.y + card_rect.size.h - 32, card_rect.size.w, 32));
   text_layer_set_background_color(s_streak_text, GColorClear);
   text_layer_set_text_color(s_streak_text, GColorBlack);
   text_layer_set_text_alignment(s_streak_text, GTextAlignmentCenter);
-  text_layer_set_font(s_streak_text, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
+  text_layer_set_font(s_streak_text, fonts_get_system_font(FONT_KEY_GOTHIC_28));
   layer_add_child(window_layer, text_layer_get_layer(s_streak_text));
 
   // Enable live health update subscription
