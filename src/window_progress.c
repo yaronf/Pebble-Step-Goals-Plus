@@ -26,9 +26,10 @@ static void layout_streak_row(int streak_y) {
   }
 
   int streak = get_streak_count();
-  GFont font = fonts_get_system_font(FONT_KEY_GOTHIC_28);
 
   if (streak > 0) {
+    GFont font = fonts_get_system_font(FONT_KEY_GOTHIC_28);
+    text_layer_set_font(s_streak_text, font);
     snprintf(s_streak_buffer, sizeof(s_streak_buffer), "%d day%s",
       streak, streak == 1 ? "" : "s");
     text_layer_set_text(s_streak_text, s_streak_buffer);
@@ -51,6 +52,7 @@ static void layout_streak_row(int streak_y) {
     layer_set_hidden(bitmap_layer_get_layer(s_streak_icon), false);
     layer_set_hidden(text_layer_get_layer(s_streak_text), false);
   } else {
+    text_layer_set_font(s_streak_text, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
     snprintf(s_streak_buffer, sizeof(s_streak_buffer), "No active streak");
     text_layer_set_text(s_streak_text, s_streak_buffer);
     text_layer_set_text_alignment(s_streak_text, GTextAlignmentCenter);
