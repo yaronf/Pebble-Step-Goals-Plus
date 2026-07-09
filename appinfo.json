@@ -32,6 +32,12 @@
         "name": "IMAGE_MENU_ICON",
         "type": "png",
         "menuIcon": true
+      },
+      {
+        "file": "images/streak.png",
+        "name": "IMAGE_STREAK",
+        "type": "bitmap",
+        "storageOptimization": "memory"
       }
     ]
   }
