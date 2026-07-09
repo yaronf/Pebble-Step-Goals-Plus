@@ -7,9 +7,31 @@ static TextLayer *s_current_value;
 static TextLayer *s_best_title;
 static TextLayer *s_best_value;
 static TextLayer *s_moto_text;
+static TextLayer *s_toggle_text;
+static Layer *s_divider_layer;
 
 static char s_current_buffer[16];
 static char s_best_buffer[16];
+
+static void divider_layer_update_proc(Layer *layer, GContext *ctx) {
+  GRect bounds = layer_get_bounds(layer);
+  int line_y = bounds.size.h / 2;
+  graphics_context_set_stroke_color(ctx, GColorDarkGray);
+  graphics_draw_line(ctx, GPoint(0, line_y), GPoint(bounds.size.w, line_y));
+}
+
+static void refresh_toggle_text() {
+  text_layer_set_text(s_toggle_text, show_streak_in_app() ? "Show in app screen: ON" : "Show in app screen: OFF");
+}
+
+static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
+  persist_write_bool(SHOW_STREAK_IN_APP, !show_streak_in_app());
+  refresh_toggle_text();
+}
+
+static void click_config_provider(void *context) {
+  window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
+}
 
 static void window_load(Window *window) {
   Layer *window_layer = window_get_root_layer(window);
@@ -30,7 +52,7 @@ static void window_load(Window *window) {
 
   // Card background inside streak screen
   int card_y = 45;
-  
+
   // Current Streak Label
   s_current_title = text_layer_create(GRect(0, card_y, bounds.size.w, 20));
   text_layer_set_background_color(s_current_title, GColorClear);
@@ -70,7 +92,7 @@ static void window_load(Window *window) {
   layer_add_child(window_layer, text_layer_get_layer(s_best_value));
 
   // Motto
-  s_moto_text = text_layer_create(GRect(0, bounds.size.h - 30, bounds.size.w, 25));
+  s_moto_text = text_layer_create(GRect(0, bounds.size.h - 56, bounds.size.w, 25));
   text_layer_set_background_color(s_moto_text, GColorClear);
   text_layer_set_text_color(s_moto_text, GColorDarkGray);
   text_layer_set_text_alignment(s_moto_text, GTextAlignmentCenter);
@@ -81,6 +103,22 @@ static void window_load(Window *window) {
     text_layer_set_text(s_moto_text, "Start a new streak today!");
   }
   layer_add_child(window_layer, text_layer_get_layer(s_moto_text));
+
+  // Divider between motto and toggle
+  int divider_x = (bounds.size.w * 20) / 100;
+  int divider_w = (bounds.size.w * 60) / 100;
+  s_divider_layer = layer_create(GRect(divider_x, bounds.size.h - 30, divider_w, 4));
+  layer_set_update_proc(s_divider_layer, divider_layer_update_proc);
+  layer_add_child(window_layer, s_divider_layer);
+
+  // Show-in-app toggle (press SELECT)
+  s_toggle_text = text_layer_create(GRect(0, bounds.size.h - 26, bounds.size.w, 20));
+  text_layer_set_background_color(s_toggle_text, GColorClear);
+  text_layer_set_text_color(s_toggle_text, GColorBlack);
+  text_layer_set_text_alignment(s_toggle_text, GTextAlignmentCenter);
+  text_layer_set_font(s_toggle_text, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+  layer_add_child(window_layer, text_layer_get_layer(s_toggle_text));
+  refresh_toggle_text();
 }
 
 static void window_unload(Window *window) {
@@ -90,12 +128,15 @@ static void window_unload(Window *window) {
   text_layer_destroy(s_best_title);
   text_layer_destroy(s_best_value);
   text_layer_destroy(s_moto_text);
+  layer_destroy(s_divider_layer);
+  text_layer_destroy(s_toggle_text);
   s_window = NULL;
 }
 
 void show_streak_window(void) {
   if (!s_window) {
     s_window = window_create();
+    window_set_click_config_provider(s_window, click_config_provider);
     window_set_window_handlers(s_window, (WindowHandlers) {
       .load = window_load,
       .unload = window_unload,

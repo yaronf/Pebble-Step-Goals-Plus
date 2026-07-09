@@ -10,7 +10,8 @@ enum {
   ENCOURAGE_75 = 6,
   CUSTOM_COLOR = 7,
   LAST_50_VIBRATED_DAY = 8,
-  LAST_75_VIBRATED_DAY = 9
+  LAST_75_VIBRATED_DAY = 9,
+  SHOW_STREAK_IN_APP = 10
 };
 
 #define THEME_PURPLE 0
@@ -27,6 +28,7 @@ int get_bonus_goal_value();
 GColor get_custom_theme_color();
 int get_local_epoch_day();
 int get_streak_count();
+bool show_streak_in_app();
 
 void show_progress_window(void);
 void show_main_menu_window(void);

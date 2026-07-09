@@ -85,6 +85,10 @@ int get_streak_count() {
   return 0;
 }
 
+bool show_streak_in_app() {
+  return persist_exists(SHOW_STREAK_IN_APP) ? persist_read_bool(SHOW_STREAK_IN_APP) : false;
+}
+
 int get_local_epoch_day() {
   time_t now = time(NULL);
   struct tm *t = localtime(&now);
