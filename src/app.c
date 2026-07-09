@@ -78,7 +78,11 @@ int get_streak_count() {
 }
 
 bool show_streak_in_app() {
+#ifdef PBL_PLATFORM_EMERY
   return persist_exists(SHOW_STREAK_IN_APP) ? persist_read_bool(SHOW_STREAK_IN_APP) : false;
+#else
+  return false;
+#endif
 }
 
 int get_local_epoch_day() {
