@@ -40,7 +40,7 @@ static void layout_streak_row(int streak_y) {
       GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft);
 
     GRect icon_bounds = gbitmap_get_bounds(s_streak_icon_bitmap);
-    int gap = 6;
+    int gap = 10;
     int total_w = icon_bounds.size.w + gap + text_size.w;
     int start_x = s_card_rect.origin.x + (s_card_rect.size.w - total_w) / 2;
     int icon_y = streak_y + (32 - icon_bounds.size.h) / 2;
