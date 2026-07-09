@@ -68,18 +68,18 @@ static void update_step_count(HealthMetric type) {
     int8_t goal_percent = (100 * steps) / total_goal;
     APP_LOG(APP_LOG_LEVEL_INFO, "Taken %d steps today. %d percent of goal", steps, goal_percent);
     
-    if (steps == 0) { 
-      goal_met = false; 
-    }
-
     int today_epoch = get_local_epoch_day();
+    int last_met = persist_exists(LAST_MET_DATE) ? persist_read_int(LAST_MET_DATE) : 0;
+
+    if (last_met != today_epoch || steps == 0) {
+      goal_met = false;
+    }
 
     // Goal met check (haptics and app launch done by foreground app upon load)
     if (steps >= total_goal && !goal_met) {
       goal_met = true;
 
       // Update streak
-      int last_met = persist_exists(LAST_MET_DATE) ? persist_read_int(LAST_MET_DATE) : 0;
       if (last_met != today_epoch) {
         int streak = persist_exists(STREAK_COUNT) ? persist_read_int(STREAK_COUNT) : 0;
         if (last_met == today_epoch - 1) {
@@ -126,6 +126,7 @@ static void worker_init() {
     set_goal(persist_read_int(GOAL));
   }
   health_service_events_subscribe(health_updates, NULL);
+  update_step_count(HealthMetricStepCount);
 }
 
 static void worker_deinit() {
