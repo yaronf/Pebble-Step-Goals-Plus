@@ -7,7 +7,7 @@ static TextLayer *s_target_text;
 static TextLayer *s_streak_text;
 static char s_steps_buffer[16];
 static char s_target_buffer[32];
-static char s_streak_buffer[32];
+static char s_streak_buffer[24];
 
 static void refresh_progress_screen() {
   int steps = get_step_count();
@@ -28,7 +28,7 @@ static void refresh_progress_screen() {
   if (show_streak_in_app()) {
     int streak = get_streak_count();
     if (streak > 0) {
-      snprintf(s_streak_buffer, sizeof(s_streak_buffer), "\xF0\x9F\x94\xA5 %d day%s streak",
+      snprintf(s_streak_buffer, sizeof(s_streak_buffer), "%d day%s streak",
         streak, streak == 1 ? "" : "s");
     } else {
       snprintf(s_streak_buffer, sizeof(s_streak_buffer), "No active streak");
@@ -140,11 +140,11 @@ static void progress_window_load(Window *window) {
   text_layer_set_font(s_target_text, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD));
   layer_add_child(window_layer, text_layer_get_layer(s_target_text));
 
-  s_streak_text = text_layer_create(GRect(card_rect.origin.x, card_rect.origin.y + card_rect.size.h - 20, card_rect.size.w, 20));
+  s_streak_text = text_layer_create(GRect(card_rect.origin.x, card_rect.origin.y + card_rect.size.h - 28, card_rect.size.w, 28));
   text_layer_set_background_color(s_streak_text, GColorClear);
   text_layer_set_text_color(s_streak_text, GColorDarkGray);
   text_layer_set_text_alignment(s_streak_text, GTextAlignmentCenter);
-  text_layer_set_font(s_streak_text, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD));
+  text_layer_set_font(s_streak_text, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD));
   layer_add_child(window_layer, text_layer_get_layer(s_streak_text));
 
   // Enable live health update subscription
