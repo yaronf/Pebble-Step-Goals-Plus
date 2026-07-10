@@ -71,6 +71,11 @@ static void update_step_count(HealthMetric type) {
     int today_epoch = get_local_epoch_day();
     int last_met = persist_exists(LAST_MET_DATE) ? persist_read_int(LAST_MET_DATE) : 0;
 
+    // Clear stale streak count once a day is missed
+    if (last_met > 0 && last_met < today_epoch - 1) {
+      persist_write_int(STREAK_COUNT, 0);
+    }
+
     if (last_met != today_epoch || steps == 0) {
       goal_met = false;
     }
