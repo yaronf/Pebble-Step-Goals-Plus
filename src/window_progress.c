@@ -113,6 +113,12 @@ static void health_handler(HealthEventType eventType, void *context) {
   }
 }
 
+static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
+  if (units_changed & DAY_UNIT) {
+    refresh_progress_screen();
+  }
+}
+
 static void progress_layer_update_proc(Layer *layer, GContext *ctx) {
   GRect bounds = layer_get_bounds(layer);
   int steps = get_step_count();
@@ -195,6 +201,7 @@ static void progress_window_load(Window *window) {
 
   // Enable live health update subscription
   health_service_events_subscribe(health_handler, NULL);
+  tick_timer_service_subscribe(DAY_UNIT, tick_handler);
 
   refresh_progress_screen();
 }
@@ -204,6 +211,7 @@ static void progress_window_appear(Window *window) {
 }
 
 static void progress_window_unload(Window *window) {
+  tick_timer_service_unsubscribe();
   health_service_events_unsubscribe();
   text_layer_destroy(s_steps_text);
   text_layer_destroy(s_target_text);
