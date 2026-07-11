@@ -34,11 +34,7 @@ static void draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex 
       break;
     }
     case 2: {
-      int streak = 0;
-      if (persist_exists(STREAK_COUNT)) {
-        streak = persist_read_int(STREAK_COUNT);
-      }
-      snprintf(subtitle_buffer, sizeof(subtitle_buffer), "%d days", streak);
+      snprintf(subtitle_buffer, sizeof(subtitle_buffer), "%d days", get_streak_count());
       menu_cell_basic_draw(ctx, cell_layer, "Streak Count", subtitle_buffer, NULL);
       break;
     }

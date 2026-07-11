@@ -16,7 +16,7 @@ static void window_load(Window *window) {
   GRect bounds = layer_get_bounds(window_layer);
   window_set_background_color(window, GColorSpringBud);
 
-  int current_streak = persist_exists(STREAK_COUNT) ? persist_read_int(STREAK_COUNT) : 0;
+  int current_streak = get_streak_count();
   int best_streak = persist_exists(BEST_STREAK) ? persist_read_int(BEST_STREAK) : 0;
 
   // Title

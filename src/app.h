@@ -26,6 +26,7 @@ int get_step_goal_value();
 int get_bonus_goal_value();
 GColor get_custom_theme_color();
 int get_local_epoch_day();
+int get_streak_count();
 
 void show_progress_window(void);
 void show_main_menu_window(void);

@@ -70,6 +70,21 @@ GColor get_custom_theme_color() {
   }
 }
 
+int get_streak_count() {
+  int today = get_local_epoch_day();
+  int last_met = persist_exists(LAST_MET_DATE) ? persist_read_int(LAST_MET_DATE) : 0;
+
+  // Streak is broken if goal was not met yesterday (or earlier)
+  if (last_met == 0 || last_met < today - 1) {
+    return 0;
+  }
+
+  if (persist_exists(STREAK_COUNT)) {
+    return persist_read_int(STREAK_COUNT);
+  }
+  return 0;
+}
+
 int get_local_epoch_day() {
   time_t now = time(NULL);
   struct tm *t = localtime(&now);
