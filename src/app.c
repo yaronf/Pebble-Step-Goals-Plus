@@ -17,6 +17,10 @@ void setStepGoal(int choice) {
 }
 
 int get_step_count() {
+  if (is_screenshot_demo()) {
+    return 3764;
+  }
+
   HealthServiceAccessibilityMask request = health_service_metric_accessible(HealthMetricStepCount,
     time_start_of_today(), time(NULL));
   if (request == HealthServiceAccessibilityMaskAvailable) {
@@ -91,6 +95,49 @@ bool show_streak_in_app() {
 #else
   return false;
 #endif
+}
+
+bool is_screenshot_demo(void) {
+  return persist_exists(DEMO_MODE) && persist_read_bool(DEMO_MODE);
+}
+
+void toggle_screenshot_demo(void) {
+  if (is_screenshot_demo()) {
+    persist_write_int(STREAK_COUNT,
+      persist_exists(DEMO_BACKUP_STREAK) ? persist_read_int(DEMO_BACKUP_STREAK) : 0);
+    persist_write_int(BEST_STREAK,
+      persist_exists(DEMO_BACKUP_BEST) ? persist_read_int(DEMO_BACKUP_BEST) : 0);
+    if (persist_exists(DEMO_BACKUP_LAST_MET)) {
+      persist_write_int(LAST_MET_DATE, persist_read_int(DEMO_BACKUP_LAST_MET));
+    } else {
+      persist_delete(LAST_MET_DATE);
+    }
+#ifdef PBL_PLATFORM_EMERY
+    persist_write_bool(SHOW_STREAK_IN_APP,
+      persist_exists(DEMO_BACKUP_SHOW_STREAK) ? persist_read_bool(DEMO_BACKUP_SHOW_STREAK) : false);
+#endif
+    persist_write_bool(DEMO_MODE, false);
+    vibes_double_pulse();
+  } else {
+    persist_write_int(DEMO_BACKUP_STREAK,
+      persist_exists(STREAK_COUNT) ? persist_read_int(STREAK_COUNT) : 0);
+    persist_write_int(DEMO_BACKUP_BEST,
+      persist_exists(BEST_STREAK) ? persist_read_int(BEST_STREAK) : 0);
+    if (persist_exists(LAST_MET_DATE)) {
+      persist_write_int(DEMO_BACKUP_LAST_MET, persist_read_int(LAST_MET_DATE));
+    } else {
+      persist_delete(DEMO_BACKUP_LAST_MET);
+    }
+#ifdef PBL_PLATFORM_EMERY
+    persist_write_bool(DEMO_BACKUP_SHOW_STREAK, show_streak_in_app());
+    persist_write_bool(SHOW_STREAK_IN_APP, true);
+#endif
+    persist_write_int(STREAK_COUNT, 8);
+    persist_write_int(BEST_STREAK, 25);
+    persist_write_int(LAST_MET_DATE, get_local_epoch_day());
+    persist_write_bool(DEMO_MODE, true);
+    vibes_short_pulse();
+  }
 }
 
 int get_local_epoch_day() {
