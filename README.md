@@ -1,4 +1,7 @@
-# Pebble-Step-Goals
-Buzzes like some other fitness trackers do when you reach your set step goal with Pebble Health.
+# Step Goals Plus
 
-buzzbuzz.
+Pebble watchapp: live step progress, daily goal buzz, streaks, optional bonus goal, and mid-goal vibes. Runs on Pebble Time, Time Round, and Time 2 (Emery).
+
+**Store:** [apps.repebble.com/ec357a2a9d6f439e813f5429](https://apps.repebble.com/ec357a2a9d6f439e813f5429)
+
+Based on [Step Goals](https://github.com/exiva/Pebble-Step-Goals) by Travis La Marr, with the Step Goals Plus UI from [dauletle](https://github.com/dauletle/Pebble-Step-Goals-Plus).
