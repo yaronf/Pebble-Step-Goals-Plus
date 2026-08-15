@@ -40,7 +40,7 @@ static void click_config_provider(void *context) {
 static void window_load(Window *window) {
   Layer *window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(window_layer);
-  window_set_background_color(window, GColorSpringBud);
+  window_set_background_color(window, GColorWhite);
 
   int current_streak = get_streak_count();
   int best_streak = persist_exists(BEST_STREAK) ? persist_read_int(BEST_STREAK) : 0;

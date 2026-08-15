@@ -11,7 +11,7 @@ void quitApp() {
 void goal_window_load(Window *window) {
   Layer *window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(window_layer);
-  window_set_background_color(window, GColorSpringBud);
+  window_set_background_color(window, GColorWhite);
 
   s_goal_icon = gbitmap_create_with_resource(RESOURCE_ID_IMAGE_TROPHY);
   GRect dimensions = gbitmap_get_bounds(s_goal_icon);
