@@ -160,7 +160,7 @@ static void init(void) {
     step_goal = persist_read_int(GOAL);
   }
 
-#if PBL_API_EXISTS(app_touch_navigation_enable)
+#if defined(PBL_TOUCH)
   app_touch_navigation_enable(true);
 #endif
 
