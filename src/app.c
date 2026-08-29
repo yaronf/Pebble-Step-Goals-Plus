@@ -160,6 +160,10 @@ static void init(void) {
     step_goal = persist_read_int(GOAL);
   }
 
+#if PBL_API_EXISTS(app_touch_navigation_enable)
+  app_touch_navigation_enable(true);
+#endif
+
   if (!app_worker_is_running()) {
     app_worker_launch();
   }
